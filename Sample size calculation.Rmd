@@ -1,0 +1,58 @@
+---
+title: "Estimación del tamaño de la muestra."
+author: "Juan Pablo Sánchez Escudero - Estudiante PhD Epidemiología."
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+---
+
+# Descripción. 
+
+En este documento se presenta la estimación del tamaño de la muestra para un estudio de prueba diagnóstica con diseño cross-sectional y un muestreo Caso-Referente. Para el cálculo se utilizaron las librerías "pROC" y "ggplot2". En cada caso se presenta también la estimación del poder esperado para cada procedimiento.
+
+# Tamaño de muestra por curva ROC. 
+ 
+```{r, echo=FALSE}
+library(pROC)
+
+# Estimación del tamaño de la muestra para un AUC-ROC de 0.7
+# con los siguientes parámetros: 
+
+## Poder estadístico: 0.9.
+## Nivel de significancia: 0.05.
+## Proporción casos-referentes: 1
+
+power.roc.test(auc = 0.7,
+               sig.level = 0.05,
+               power = 0.9,
+               kappa=1)
+
+# Poder estadístico en función del tamaño de la muestra. 
+n <- c(10,15,20,25,30,40,50,70)
+p <- power.roc.test(auc = 0.7, sig.level = 0.05,ncontrols = n,
+                    ncases = n, kappa = 1)
+p$power
+power <- round(p$power, digits = 2) 
+data <- as.data.frame(cbind(power, n))
+
+# Función de poder según tamaño de la muestra "n".
+library(ggplot2)
+ggplot(data = data, aes(x = power, y=n))+
+  geom_line(color = "red", size = 0.8)+
+  geom_point(shape = 21, color = "red", fill = "white",
+             size = 2,stroke = 1.8)+
+  scale_x_continuous(labels = as.character(data$power),
+                     breaks = data$power)+
+  scale_y_continuous(labels = as.character(data$n),
+                     breaks = data$n)+
+  theme_bw()+
+  labs(title = "n y poder estadístico para AUC-ROC.",
+       subtitle = "\u03b1 err prob = 0.05, AUC-ROC = 0.7",
+       y = "Tamaño de la muestra por grupo",
+       x = "Poder estadístico (1-β)")+
+  theme(plot.title = element_text(hjust = 0.5, size = 18),
+        plot.subtitle = element_text(hjust = 0.5, size = 16),
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14))
+``` 
